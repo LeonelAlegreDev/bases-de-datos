@@ -1,0 +1,16 @@
+services:
+  mysql:
+    image: mysql
+    restart: always
+    environment:exit
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: bases-de-datos
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
+volumes:
+  mysql_data:
