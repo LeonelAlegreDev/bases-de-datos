@@ -33,8 +33,12 @@ Este comando construirá las imágenes de Docker si es necesario, y luego inicia
 
 ### Conectarse a la Base de Datos
 
+#### Usando DBMS
 En caso de estar trabajando con un DBMS se debe conectar con la base de datos 3306 (por defecto en el archivo `docker-compose.yml`) y seguir las instrucciones de configuración del DBMS para loguearse con usuario y contraseña.
 
+Crear una base de datos, seleccionarla y ejecutar el archivo `db-init.sql`.
+
+##### Usando la consola
 Sigue los siguientes pasos para acceder al cliente de MariaDB sin un DBMS usando la consola.
 
 > ⚠️ Para acceder a cliente de MariaDB se debe remplazar las directivas de comandos mysql por mariadb.
@@ -53,5 +57,10 @@ Este comando te dará acceso a la línea de comandos dentro del contenedor node-
 
 ```bash
 mysql -u root -p
+```
+
+3. Para ejecutar algun comando primero se debe seleccionar la base de datos:
+```
+use bases-de-datos
 ```
 
