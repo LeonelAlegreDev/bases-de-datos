@@ -1,0 +1,12 @@
+Tablas listas:
+* Usuarios
+* Vendedores
+* Comprador
+* Repartidor
+* Local
+* Menus
+* Productos
+
+Tablas eliminadas:
+* Direccion
+* Datos Bancarios
