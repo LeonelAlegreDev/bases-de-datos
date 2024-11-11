@@ -47,9 +47,11 @@ INSERT INTO usuarios (nombre, apellido, email, password, dni, tel, fk_tipo)
 VALUES 
 ('admin', 'admin1', 'admin@email.com', '123456', '00000000', '+54 11 12345678', 1),
 ('vendedor', 'vendedor1', 'vendedor1@email.com', '123456', '00000001', '+54 11 12345678', 2),
-('comprador', 'comprador1', 'comprador1@email.com', '123456', '00000002', '+54 11 12345678', 3);
+('comprador', 'comprador1', 'comprador1@email.com', '123456', '00000002', '+54 11 12345678', 3),
+('repartidor', 'repartidor1', 'repartidor1@email.com', '123456', '00000003', '+54 11 12345678', 4),
+('repartidor', 'repartidor2', 'repartidor2@email.com', '123456', '00000004', '+54 11 12345678', 4);
 
- -- TABLA vendedores
+-- TABLA vendedores
 --
 -- DETALLES: Se añadieron los campos cuit y cbu,
 -- y se quito el campo comisiones
@@ -131,3 +133,125 @@ DELIMITER ;
 INSERT INTO compradores (fk_usuario, direccion, ciudad, provincia, codigo_postal, pais, detalle_direccion, nro_tarjeta, cvv, vencimiento)
 VALUES 
 (3, 'Calle Falsa 123', 'Ciudad de Springfield', 'Springfield', '1234', 'EEUU', 'Casa de Homero', '1234567890123456', '123', '2023-12-31');
+
+--
+-- TABLA tipos_vehiculos
+--
+
+CREATE TABLE IF NOT EXISTS tipos_vehiculos (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL UNIQUE
+);
+
+INSERT INTO tipos_vehiculos (nombre) 
+VALUES ('auto'), ('motocicleta'), ('camioneta'), ('bicicleta');
+
+--
+-- TABLA repartidores
+--
+CREATE TABLE repartidores (
+    fk_usuario INT PRIMARY KEY,
+    tipo_vehiculo VARCHAR(50) NOT NULL,
+    patente CHAR(7),
+    cbu CHAR(22),
+    FOREIGN KEY (fk_usuario) REFERENCES usuarios(id),
+    FOREIGN KEY (tipo_vehiculo) REFERENCES tipos_vehiculos(nombre)
+);
+
+DELIMITER //
+
+CREATE TRIGGER before_insert_repartidores
+BEFORE INSERT ON repartidores
+FOR EACH ROW
+BEGIN
+    DECLARE tipo_usuario INT;
+    -- Obtener el tipo de usuario del fk_usuario
+    SELECT fk_tipo INTO tipo_usuario FROM usuarios WHERE id = NEW.fk_usuario;
+    -- Verificar si el tipo de usuario es 'repartidor' (asumiendo que el id del tipo 'repartidor' es 4)
+    IF tipo_usuario != 4 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El usuario no es un repartidor';
+    END IF;
+
+    -- Verificar si el tipo de vehiculo es 'bicicleta'
+    IF NEW.tipo_vehiculo != 'bicicleta' AND NEW.patente IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La patente no puede ser NULL a menos que el tipo de vehiculo sea bicicleta';
+    END IF;
+END //
+
+CREATE TRIGGER before_update_repartidores
+BEFORE UPDATE ON repartidores
+FOR EACH ROW
+BEGIN
+    -- Verificar si el tipo de vehiculo es 'bicicleta'
+    IF NEW.tipo_vehiculo != 'bicicleta' AND NEW.patente IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La patente no puede ser NULL a menos que el tipo de vehiculo sea bicicleta';
+    END IF;
+END //
+
+DELIMITER ;
+
+INSERT INTO repartidores (fk_usuario, tipo_vehiculo, patente, cbu)
+VALUES 
+(4, 'motocicleta', 'ABC123', '1234567890123456789012'),
+(5, 'bicicleta', NULL, '1234567890123456789012');
+
+-- TABLA locales
+--
+-- DETALLES: se añadieron los campos fk_usuario,
+-- direccion, provincia, ciudad, pais, tel_local y
+-- codigo_postal
+
+CREATE TABLE locales (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    fk_usuario INT NOT NULL,
+    nombre VARCHAR(255) NOT NULL,
+    direccion VARCHAR(255) NOT NULL,
+    provincia VARCHAR(64) NOT NULL,
+    ciudad VARCHAR(64) NOT NULL,
+    pais VARCHAR(64) NOT NULL,
+    tel_local VARCHAR(32) NOT NULL,
+    codigo_postal CHAR(8),
+    calificacion DECIMAL(2, 1) DEFAULT 0,
+    FOREIGN KEY (fk_usuario) REFERENCES usuarios(id)
+);
+
+DELIMITER //
+
+-- TRIGGER before_insert_locales    
+-- Previene que se inserte un local si el
+-- usuario no es un vendedor
+CREATE TRIGGER before_insert_locales
+BEFORE INSERT ON locales
+FOR EACH ROW
+BEGIN
+    DECLARE tipo_usuario INT;
+    -- Obtener el tipo de usuario del fk_usuario
+    SELECT fk_tipo INTO tipo_usuario FROM usuarios WHERE id = NEW.fk_usuario;
+    -- Verificar si el tipo de usuario es 'vendedor' (asumiendo que el id del tipo 'vendedor' es 2)
+    IF tipo_usuario != 2 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El usuario no es un vendedor';
+    END IF;
+END //
+
+-- TRIGGER before_update_locales
+-- Previene que se actualice un local si el
+-- usuario no es un vendedor
+CREATE TRIGGER before_update_locales
+BEFORE UPDATE ON locales
+FOR EACH ROW
+BEGIN
+    DECLARE tipo_usuario INT;
+    -- Obtener el tipo de usuario del fk_usuario
+    SELECT fk_tipo INTO tipo_usuario FROM usuarios WHERE id = NEW.fk_usuario;
+    -- Verificar si el tipo de usuario es 'vendedor' (asumiendo que el id del tipo 'vendedor' es 2)
+    IF tipo_usuario != 2 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El usuario no es un vendedor';
+    END IF;
+END //
+
+DELIMITER ;
+
+INSERT INTO locales (fk_usuario, nombre, direccion, provincia, ciudad, pais, tel_local, codigo_postal)
+VALUES
+(2, 'Local 1', 'Calle 123', 'Buenos Aires', 'CABA', 'Argentina', '1234567890', '1234'),
+(2, 'Local 2', 'Calle 456', 'Buenos Aires', 'CABA', 'Argentina', '0987654321', '4321');

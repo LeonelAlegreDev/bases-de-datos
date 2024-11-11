@@ -47,4 +47,6 @@ INSERT INTO usuarios (nombre, apellido, email, password, dni, tel, fk_tipo)
 VALUES 
 ('admin', 'admin1', 'admin@email.com', '123456', '00000000', '+54 11 12345678', 1),
 ('vendedor', 'vendedor1', 'vendedor1@email.com', '123456', '00000001', '+54 11 12345678', 2),
-('comprador', 'comprador1', 'comprador1@email.com', '123456', '00000002', '+54 11 12345678', 3);
+('comprador', 'comprador1', 'comprador1@email.com', '123456', '00000002', '+54 11 12345678', 3),
+('repartidor', 'repartidor1', 'repartidor1@email.com', '123456', '00000003', '+54 11 12345678', 4),
+('repartidor', 'repartidor2', 'repartidor2@email.com', '123456', '00000004', '+54 11 12345678', 4);
