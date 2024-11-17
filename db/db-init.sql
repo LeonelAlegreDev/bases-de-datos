@@ -317,3 +317,162 @@ VALUES
 (2, 'bebida', 'Sprite', 100.00, 20),
 (2, 'bebida', 'Agua', 50.00, 20),
 (2, 'postre', 'Torta', 200.00, 10);
+
+-- Tabla ventas
+CREATE TABLE ventas (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    fk_comprador INT NOT NULL,
+    fk_local INT NOT NULL,
+    total DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    metodo_pago ENUM('EFECTIVO', 'DEBITO', 'CREDITO') NOT NULL, -- PONGO UN ENUM ACÁ PARA NO HACER OTRA TABLA
+    estado ENUM('PENDIENTE', 'PAGADO', 'CANCELADO') NOT NULL DEFAULT 'PENDIENTE', 
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fk_comprador) REFERENCES compradores(fk_usuario),
+    FOREIGN KEY (fk_local) REFERENCES locales(id)
+);
+
+-- tabla entregas
+CREATE TABLE entregas (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    fk_venta INT NOT NULL,
+    fk_repartidor INT DEFAULT NULL,
+    entrega_estimada TIMESTAMP,
+    estado ENUM('PENDIENTE', 'EN PREPARACION', 'LISTO A DESPACHAR', 'DESPACHADO', 'ENTREGADO', 'CANCELADO') DEFAULT 'PENDIENTE',
+    geo_coord VARCHAR(255),
+    FOREIGN KEY (fk_venta) REFERENCES ventas(id),
+    FOREIGN KEY (fk_repartidor) REFERENCES repartidores(fk_usuario)
+);
+
+DELIMITER //
+
+CREATE TRIGGER after_ventas_insert
+AFTER INSERT ON ventas
+FOR EACH ROW
+BEGIN
+    DECLARE entrega_estado ENUM('PENDIENTE', 'EN PREPARACION', 'LISTO A DESPACHAR', 'DESPACHADO', 'ENTREGADO', 'CANCELADO');
+    IF NEW.estado = 'CANCELADO' THEN
+        SET entrega_estado = 'CANCELADO';
+    ELSE
+        SET entrega_estado = 'PENDIENTE';
+    END IF;
+    INSERT INTO entregas (fk_venta, entrega_estimada, estado)
+    VALUES (NEW.id, CURRENT_TIMESTAMP + INTERVAL 30 MINUTE, entrega_estado);
+END //
+
+CREATE TRIGGER after_ventas_update
+AFTER UPDATE ON ventas
+FOR EACH ROW
+BEGIN
+    DECLARE entrega_estado ENUM('PENDIENTE', 'EN PREPARACION', 'LISTO A DESPACHAR', 'DESPACHADO', 'ENTREGADO', 'CANCELADO');
+    IF NEW.estado = 'CANCELADO' THEN
+        SET entrega_estado = 'CANCELADO';
+    ELSE
+        SET entrega_estado = 'PENDIENTE';
+    END IF;
+    UPDATE entregas
+    SET estado = entrega_estado
+    WHERE fk_venta = NEW.id;
+END //
+
+DELIMITER ;
+
+INSERT INTO ventas (fk_comprador, fk_local, metodo_pago, estado)
+VALUES
+(3, 1, 'EFECTIVO', 'PENDIENTE');
+
+
+-- Tabla detalles
+CREATE TABLE detalles (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    fk_venta INT NOT NULL,
+    fk_producto INT NOT NULL,
+    cantidad INT NOT NULL,
+    monto DECIMAL(10, 2) DEFAULT 0,
+    FOREIGN KEY (fk_venta) REFERENCES ventas(id),
+    FOREIGN KEY (fk_producto) REFERENCES productos(id)
+);
+
+DELIMITER //
+
+-- TRIGGER before_insert_detalles
+CREATE TRIGGER before_insert_detalles
+BEFORE INSERT ON detalles
+FOR EACH ROW
+BEGIN
+    -- Previene que se inserte un detalle si la cantidad 
+    -- supera el stock disponible
+    DECLARE stock_disponible INT;
+    DECLARE precio_producto DECIMAL(10,2);
+
+    -- Obtener el stock disponible del producto
+    SELECT stock INTO stock_disponible FROM productos WHERE id = NEW.fk_producto;
+    -- Verificar si la cantidad es menor o igual al stock disponible
+    IF NEW.cantidad > stock_disponible THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No hay stock suficiente para el producto';
+    END IF;
+
+    -- Obtener el precio del producto
+    SELECT precio INTO precio_producto FROM productos WHERE id = NEW.fk_producto;
+    -- Calcular el valor de la venta
+    SET NEW.monto = NEW.cantidad * precio_producto;
+END //
+
+DELIMITER //
+-- TRIGGER before_update_detalles
+CREATE TRIGGER before_update_detalles
+BEFORE UPDATE ON detalles
+FOR EACH ROW
+BEGIN
+    -- Previene que se inserte un detalle si la cantidad 
+    -- supera el stock disponible
+    DECLARE stock_disponible INT;
+    DECLARE precio_producto DECIMAL(10,2);
+
+    -- Obtener el stock disponible del producto
+    SELECT stock INTO stock_disponible FROM productos WHERE id = NEW.fk_producto;
+    -- Verificar si la cantidad es menor o igual al stock disponible
+    IF NEW.cantidad > stock_disponible THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No hay stock suficiente para el producto';
+    END IF;
+
+
+    -- Obtener el precio del producto
+    SELECT precio INTO precio_producto FROM productos WHERE id = NEW.fk_producto;
+    -- Calcular el valor de la venta
+    SET NEW.monto = NEW.cantidad * precio_producto;
+END //
+
+DELIMITER //
+
+CREATE TRIGGER after_insert_detalles
+AFTER INSERT ON detalles
+FOR EACH ROW
+BEGIN
+    -- Actualizar el total en la tabla ventas
+    UPDATE ventas
+    SET total = total + NEW.monto
+    WHERE id = NEW.fk_venta;
+
+    -- Actualizar el stock del producto
+    UPDATE productos
+    SET stock = stock - NEW.cantidad
+    WHERE id = NEW.fk_producto;
+END //
+
+DELIMITER //
+
+CREATE TRIGGER after_update_detalles
+AFTER UPDATE ON detalles
+FOR EACH ROW
+BEGIN
+    DECLARE old_monto DECIMAL(10,2);
+    -- Obtener el valor de venta anterior
+    SELECT monto INTO old_monto FROM detalles WHERE id = OLD.id;
+    -- Actualizar el total en la tabla ventas
+    UPDATE ventas
+    SET total = total - old_monto + NEW.monto
+    WHERE id = NEW.fk_venta;
+END //
+
+INSERT INTO detalles (fk_venta, fk_producto, cantidad)
+VALUES (1, 1, 2);

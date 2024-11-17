@@ -4,7 +4,7 @@ CREATE TABLE detalles (
     fk_venta INT NOT NULL,
     fk_producto INT NOT NULL,
     cantidad INT NOT NULL,
-    monto DECIMAL(10, 2) NOT NULL,
+    monto DECIMAL(10, 2) DEFAULT 0,
     FOREIGN KEY (fk_venta) REFERENCES ventas(id),
     FOREIGN KEY (fk_producto) REFERENCES productos(id)
 );
@@ -19,24 +19,22 @@ BEGIN
     -- Previene que se inserte un detalle si la cantidad 
     -- supera el stock disponible
     DECLARE stock_disponible INT;
+    DECLARE precio_producto DECIMAL(10,2);
+
     -- Obtener el stock disponible del producto
     SELECT stock INTO stock_disponible FROM productos WHERE id = NEW.fk_producto;
     -- Verificar si la cantidad es menor o igual al stock disponible
     IF NEW.cantidad > stock_disponible THEN
-        SET mensaje_error = 'Falta stock para el producto ' + NEW.fk_producto;
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = mensaje_error;
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No hay stock suficiente para el producto';
     END IF;
 
-    -- Calcular el monto del detalle
-    DECLARE precio_producto DECIMAL(10,2);
     -- Obtener el precio del producto
     SELECT precio INTO precio_producto FROM productos WHERE id = NEW.fk_producto;
     -- Calcular el valor de la venta
     SET NEW.monto = NEW.cantidad * precio_producto;
-
 END //
 
-DELIMITER ;
+DELIMITER //
 -- TRIGGER before_update_detalles
 CREATE TRIGGER before_update_detalles
 BEFORE UPDATE ON detalles
@@ -45,22 +43,23 @@ BEGIN
     -- Previene que se inserte un detalle si la cantidad 
     -- supera el stock disponible
     DECLARE stock_disponible INT;
+    DECLARE precio_producto DECIMAL(10,2);
+
     -- Obtener el stock disponible del producto
     SELECT stock INTO stock_disponible FROM productos WHERE id = NEW.fk_producto;
     -- Verificar si la cantidad es menor o igual al stock disponible
     IF NEW.cantidad > stock_disponible THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = CONCAT('Falta stock para el producto ', NEW.fk_producto AS CHAR);
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No hay stock suficiente para el producto';
     END IF;
 
-    -- Calcular el monto del detalle
-    DECLARE precio_producto DECIMAL(10,2);
+
     -- Obtener el precio del producto
     SELECT precio INTO precio_producto FROM productos WHERE id = NEW.fk_producto;
     -- Calcular el valor de la venta
     SET NEW.monto = NEW.cantidad * precio_producto;
 END //
 
-DELIMITER ;
+DELIMITER //
 
 CREATE TRIGGER after_insert_detalles
 AFTER INSERT ON detalles
@@ -70,7 +69,14 @@ BEGIN
     UPDATE ventas
     SET total = total + NEW.monto
     WHERE id = NEW.fk_venta;
+
+    -- Actualizar el stock del producto
+    UPDATE productos
+    SET stock = stock - NEW.cantidad
+    WHERE id = NEW.fk_producto;
 END //
+
+DELIMITER //
 
 CREATE TRIGGER after_update_detalles
 AFTER UPDATE ON detalles
@@ -84,3 +90,6 @@ BEGIN
     SET total = total - old_monto + NEW.monto
     WHERE id = NEW.fk_venta;
 END //
+
+INSERT INTO detalles (fk_venta, fk_producto, cantidad)
+VALUES (1, 1, 2);
