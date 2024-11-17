@@ -11,10 +11,6 @@ CREATE TABLE ventas (
     FOREIGN KEY (fk_local) REFERENCES locales(id)
 );
 
-INSERT INTO ventas (fk_comprador, fk_local, metodo_pago, estado, total)
-VALUES
-(3, 1, 'EFECTIVO', 'PAGADO');
-
 CREATE TABLE entregas (
     id INT PRIMARY KEY AUTO_INCREMENT,
     fk_venta INT NOT NULL,
@@ -58,3 +54,7 @@ BEGIN
 END //
 
 DELIMITER ;
+
+INSERT INTO ventas (fk_comprador, fk_local, metodo_pago, estado, total)
+VALUES
+(3, 1, 'EFECTIVO', 'PAGADO');
