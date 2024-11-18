@@ -54,7 +54,3 @@ BEGIN
 END //
 
 DELIMITER ;
-
-INSERT INTO ventas (fk_comprador, fk_local, metodo_pago, estado, total)
-VALUES
-(3, 1, 'EFECTIVO', 'PAGADO');

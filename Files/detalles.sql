@@ -90,6 +90,3 @@ BEGIN
     SET total = total - old_monto + NEW.monto
     WHERE id = NEW.fk_venta;
 END //
-
-INSERT INTO detalles (fk_venta, fk_producto, cantidad)
-VALUES (1, 1, 2);
