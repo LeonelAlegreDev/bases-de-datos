@@ -45,11 +45,11 @@ ADD CONSTRAINT UNIQUE (dni, not_archived);
 
 INSERT INTO usuarios (nombre, apellido, email, password, dni, tel, fk_tipo)
 VALUES 
-('admin', 'admin1', 'admin@email.com', '123456', '00000000', '+54 11 12345678', 1),
-('vendedor', 'vendedor1', 'vendedor1@email.com', '123456', '00000001', '+54 11 12345678', 2),
-('comprador', 'comprador1', 'comprador1@email.com', '123456', '00000002', '+54 11 12345678', 3),
-('repartidor', 'repartidor1', 'repartidor1@email.com', '123456', '00000003', '+54 11 12345678', 4),
-('repartidor', 'repartidor2', 'repartidor2@email.com', '123456', '00000004', '+54 11 12345678', 4);
+('admin', 'admin1', 'admin@email.com', '123456', '00000000', '+54 11 12345678', 1);
+-- ('vendedor', 'vendedor1', 'vendedor1@email.com', '123456', '00000001', '+54 11 12345678', 2),
+-- ('comprador', 'comprador1', 'comprador1@email.com', '123456', '00000002', '+54 11 12345678', 3),
+-- ('repartidor', 'repartidor1', 'repartidor1@email.com', '123456', '00000003', '+54 11 12345678', 4),
+-- ('repartidor', 'repartidor2', 'repartidor2@email.com', '123456', '00000004', '+54 11 12345678', 4);
 
 -- TABLA vendedores
 --
@@ -86,8 +86,8 @@ END //
 DELIMITER ;
 
 -- Crea el vendedor creado en el archivo usuarios.sql
-INSERT INTO vendedores (fk_usuario, cuit, cbu) 
-VALUES (2, '20323232323', '1234567890123456789012');
+-- INSERT INTO vendedores (fk_usuario, cuit, cbu) 
+-- VALUES (2, '20323232323', '1234567890123456789012');
 
 -- Compradores
 --
@@ -130,9 +130,9 @@ END //
 
 DELIMITER ;
 
-INSERT INTO compradores (fk_usuario, direccion, ciudad, provincia, codigo_postal, pais, detalle_direccion, nro_tarjeta, cvv, vencimiento)
-VALUES 
-(3, 'Calle Falsa 123', 'Ciudad de Springfield', 'Springfield', '1234', 'EEUU', 'Casa de Homero', '1234567890123456', '123', '2023-12-31');
+-- INSERT INTO compradores (fk_usuario, direccion, ciudad, provincia, codigo_postal, pais, detalle_direccion, nro_tarjeta, cvv, vencimiento)
+-- VALUES 
+-- (3, 'Calle Falsa 123', 'Ciudad de Springfield', 'Springfield', '1234', 'EEUU', 'Casa de Homero', '1234567890123456', '123', '2023-12-31');
 
 --
 -- TABLA tipos_vehiculos
@@ -190,10 +190,10 @@ END //
 
 DELIMITER ;
 
-INSERT INTO repartidores (fk_usuario, tipo_vehiculo, patente, cbu)
-VALUES 
-(4, 'motocicleta', 'ABC123', '1234567890123456789012'),
-(5, 'bicicleta', NULL, '1234567890123456789012');
+-- INSERT INTO repartidores (fk_usuario, tipo_vehiculo, patente, cbu)
+-- VALUES 
+-- (4, 'motocicleta', 'ABC123', '1234567890123456789012'),
+-- (5, 'bicicleta', NULL, '1234567890123456789012');
 
 -- TABLA locales
 --
@@ -251,10 +251,10 @@ END //
 
 DELIMITER ;
 
-INSERT INTO locales (fk_usuario, nombre, direccion, provincia, ciudad, pais, tel_local, codigo_postal)
-VALUES
-(2, 'Local 1', 'Calle 123', 'Buenos Aires', 'CABA', 'Argentina', '1234567890', '1234'),
-(2, 'Local 2', 'Calle 456', 'Buenos Aires', 'CABA', 'Argentina', '0987654321', '4321');
+-- INSERT INTO locales (fk_usuario, nombre, direccion, provincia, ciudad, pais, tel_local, codigo_postal)
+-- VALUES
+-- (2, 'Local 1', 'Calle 123', 'Buenos Aires', 'CABA', 'Argentina', '1234567890', '1234'),
+-- (2, 'Local 2', 'Calle 456', 'Buenos Aires', 'CABA', 'Argentina', '0987654321', '4321');
 
 --
 -- TABLA menus
@@ -268,10 +268,10 @@ CREATE TABLE menus (
     FOREIGN KEY (fk_local) REFERENCES locales(id)
 );
 
-INSERT INTO menus (fk_local, nombre)
-VALUES
-(1, 'Menu 1'), (1, 'Menu 2'),
-(2, 'Menu 1'), (2, 'Menu 2');
+-- INSERT INTO menus (fk_local, nombre)
+-- VALUES
+-- (1, 'Menu 1'), (1, 'Menu 2'),
+-- (2, 'Menu 1'), (2, 'Menu 2');
 
 -- 
 -- TABLA tipos_productos
@@ -305,18 +305,18 @@ CREATE TABLE productos (
     CONSTRAINT fk_tipo_producto FOREIGN KEY (tipo_producto) REFERENCES tipos_productos(nombre)
 );
 
-INSERT INTO productos (fk_menu, tipo_producto, descripcion, precio, stock)
-VALUES 
-(1, 'comida', 'Hamburguesa', 200.00, 10),
-(1, 'comida', 'Pizza', 300.00, 5),
-(1, 'bebida', 'Coca Cola', 100.00, 20),
-(1, 'bebida', 'Fanta', 100.00, 20),
-(1, 'postre', 'Helado', 150.00, 10),
-(2, 'comida', 'Milanesa', 250.00, 10),
-(2, 'comida', 'Empanadas', 150.00, 10),
-(2, 'bebida', 'Sprite', 100.00, 20),
-(2, 'bebida', 'Agua', 50.00, 20),
-(2, 'postre', 'Torta', 200.00, 10);
+-- INSERT INTO productos (fk_menu, tipo_producto, descripcion, precio, stock)
+-- VALUES 
+-- (1, 'comida', 'Hamburguesa', 200.00, 10),
+-- (1, 'comida', 'Pizza', 300.00, 5),
+-- (1, 'bebida', 'Coca Cola', 100.00, 20),
+-- (1, 'bebida', 'Fanta', 100.00, 20),
+-- (1, 'postre', 'Helado', 150.00, 10),
+-- (2, 'comida', 'Milanesa', 250.00, 10),
+-- (2, 'comida', 'Empanadas', 150.00, 10),
+-- (2, 'bebida', 'Sprite', 100.00, 20),
+-- (2, 'bebida', 'Agua', 50.00, 20),
+-- (2, 'postre', 'Torta', 200.00, 10);
 
 -- Tabla ventas
 CREATE TABLE ventas (
@@ -541,14 +541,14 @@ END //
 
 DELIMITER ;
 
-INSERT INTO carritos (fk_comprador, fk_local, metodo_pago)
-VALUES (3, 1, 'DEBITO');
+-- INSERT INTO carritos (fk_comprador, fk_local, metodo_pago)
+-- VALUES (3, 1, 'DEBITO');
 
-INSERT INTO carrito_detalles (fk_carrito, fk_producto, cantidad)
-VALUES (1, 1, 2),
-       (1, 2, 1),
-       (1, 3, 3);
+-- INSERT INTO carrito_detalles (fk_carrito, fk_producto, cantidad)
+-- VALUES (1, 1, 2),
+--        (1, 2, 1),
+--        (1, 3, 3);
 
-UPDATE carritos
-SET estado = 'CONFIRMADO'
-WHERE id = 1;
+-- UPDATE carritos
+-- SET estado = 'CONFIRMADO'
+-- WHERE id = 1;
