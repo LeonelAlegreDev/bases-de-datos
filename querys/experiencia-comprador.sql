@@ -100,7 +100,7 @@ UPDATE entregas
 SET fk_repartidor = @repartidor_id
 WHERE id = @entrega_id;
 
--- 9 El repar tidor recoge el paquete y lo entrega en el domicilio del comprador.
+-- 9 El reparatidor recoge el paquete y lo entrega en el domicilio del comprador.
 UPDATE entregas
 SET estado = 'DESPACHADO'
 WHERE id = @entrega_id;
